@@ -1,6 +1,6 @@
 from functools import partial
 from numbers import Number
-from typing import Union
+from typing import Union, Callable
 
 import nir
 import nirtorch
@@ -59,7 +59,15 @@ def _import_norse_module(
     ignore_warnings: bool = False,
     reset_method: reset.ResetMethod = reset.reset_value,
     dt: float = 0.001,
+    pre_map: Callable[
+        [torch.nn.Module, bool, reset.ResetMethod, float], nir.NIRNode
+    ] = lambda a, b, c, d : None
 ) -> torch.nn.Module:
+    # Apply alternative mapping before the default map.
+    module = pre_map(node, ignore_warnings, reset_method, dt)
+    if module is not None:
+        return module
+
     if isinstance(node, nir.Affine):
         has_bias = node.bias is not None
         module = torch.nn.Linear(
@@ -144,12 +152,20 @@ def _import_norse_module(
     #             layer_lif, layer_affine, output_modules=0
     #         )
 
+    # If control flow reaches this point, the NIRNode has no valid mapping.
+    # (exceptions are nir.Input and nir.Output nodes, which don't need equivalents in norse)
+    if not (isinstance(node, nir.Input) or isinstance(node, nir.Output)):
+        logging.warn(f"No mapping found for NIRNode {type(node).__name__}")
+
 
 def from_nir(
     node: nir.NIRNode,
     ignore_warnings: bool = False,
     reset_method: reset.ResetMethod = reset.reset_value,
     dt: float = 0.001,
+    pre_map: Callable[
+        [torch.nn.Module, bool, reset.ResetMethod, float], nir.NIRNode
+    ] = lambda a, b, c, d : None
 ) -> torch.nn.Module:
     """Converts a NIR graph to a Norse module.
 
@@ -171,5 +187,6 @@ def from_nir(
             ignore_warnings=ignore_warnings,
             reset_method=reset_method,
             dt=dt,
+            pre_map=pre_map
         ),
     )
