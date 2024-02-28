@@ -14,7 +14,7 @@ import logging
 
 def _extract_norse_module(
     module: torch.nn.Module, dt: float = 0.001,
-    post_map: Callable[[torch.nn.Module, float], nir.NIRNode] = lambda _ : None
+    post_map: Callable[[torch.nn.Module, float], nir.NIRNode] = lambda a, b : None
 ) -> Optional[nir.NIRNode]:
     if isinstance(module, torch.nn.Conv2d):
         return nir.Conv2d(
