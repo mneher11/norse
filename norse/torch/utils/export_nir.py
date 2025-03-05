@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Optional
+from typing import Callable, Optional, List, Type
 
 import torch
 import nir
@@ -10,9 +10,11 @@ import norse.torch.module.leaky_integrator_box as leaky_integrator_box
 import norse.torch.module.lif as lif
 import norse.torch.module.lif_box as lif_box
 
+import logging
 
 def _extract_norse_module(
-    module: torch.nn.Module, dt: float = 0.001
+    module: torch.nn.Module, dt: float = 0.001,
+    post_map: Callable[[torch.nn.Module, float], nir.NIRNode] = lambda a, b : None
 ) -> Optional[nir.NIRNode]:
     if isinstance(module, torch.nn.Conv2d):
         return nir.Conv2d(
@@ -50,15 +52,20 @@ def _extract_norse_module(
             r=torch.ones_like(module.p.v_th.detach()),
             v_threshold=module.p.v_th.detach(),
         )
-    elif isinstance(module, torch.nn.Linear):
+    if isinstance(module, torch.nn.Linear):
         if module.bias is None:  # Add zero bias if none is present
             return nir.Affine(
                 module.weight.detach(), torch.zeros(*module.weight.shape[:-1])
             )
         else:
             return nir.Affine(module.weight.detach(), module.bias.detach())
+    if isinstance(module, torch.nn.Flatten):
+        return nir.Flatten(None, module.start_dim, module.end_dim)
 
-    return None
+    mapped_node = post_map(module, dt)
+    if mapped_node == None:
+        logging.warning(f"No mapping found for module of type {type(module).__name__}")
+    return post_map(module, dt)
 
 
 def to_nir(
@@ -66,10 +73,13 @@ def to_nir(
     sample_data: torch.Tensor,
     model_name: str = "norse",
     dt: float = 0.001,
+    ignore_types: List[Type] = [],
+    post_map: Callable[[torch.nn.Module, float], nir.NIRNode] = lambda a, b : None
 ) -> nir.NIRNode:
     return extract_nir_graph(
         module,
-        partial(_extract_norse_module, dt=dt),
+        partial(_extract_norse_module, dt=dt, post_map=post_map),
         sample_data,
         model_name=model_name,
+        ignore_types=ignore_types
     )
