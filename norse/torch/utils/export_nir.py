@@ -20,7 +20,7 @@ def _extract_norse_module(
         return nir.Conv2d(
             input_shape=None,
             weight=module.weight.detach(),
-            bias=module.bias.detach(),
+            bias=module.bias.detach() if module.bias is not None else torch.as_tensor(0.0),
             stride=module.stride,
             padding=module.padding,
             dilation=module.dilation,
