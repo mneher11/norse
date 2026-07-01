@@ -20,7 +20,7 @@ def test_conv2d():
 
 def test_conv1d():
     m = norse.SequentialState(torch.nn.Conv1d(1, 2, 3))
-    # type_check=False because Conv2d is created without input_shape
+    # type_check=False because Conv1d is created without input_shape
     graph = norse.to_nir(m, type_check=False)
     assert len(graph.nodes) == 3
     assert isinstance(graph.nodes["input_tensor"], nir.Input)
@@ -31,7 +31,7 @@ def test_conv1d():
 
 def test_flatten():
     m = norse.SequentialState(torch.nn.Flatten())
-    # type_check=False because Conv2d is created without input_shape
+    # type_check=False because Flatten is created without input_shape
     graph = norse.to_nir(m, type_check=False)
     assert len(graph.nodes) == 3
     assert isinstance(graph.nodes["input_tensor"], nir.Input)
@@ -42,7 +42,7 @@ def test_flatten():
 
 def test_avgpool2d():
     m = norse.SequentialState(torch.nn.AvgPool2d(kernel_size=2))
-    # type_check=False because Conv2d is created without input_shape
+    # type_check=False because AvgPool2d is created without input_shape
     graph = norse.to_nir(m, type_check=False)
     assert len(graph.nodes) == 3
     assert isinstance(graph.nodes["input_tensor"], nir.Input)

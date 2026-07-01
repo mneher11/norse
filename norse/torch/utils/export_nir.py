@@ -84,7 +84,7 @@ def _norse_to_nir_mapping_dict(
         # why we subtract 1 from the start dimension and end dimension.
         return nir.Flatten(
             input_type=None,
-            start_dim=module.start_dim - 1 if module.start_dim > 0 else module.end_dim,
+            start_dim=module.start_dim - 1 if module.start_dim > 0 else module.start_dim,
             end_dim=module.end_dim - 1 if module.end_dim > 0 else module.end_dim,
         )
 
@@ -124,7 +124,7 @@ def _norse_to_nir_mapping_dict(
         return nir.CubaLI(
             tau_mem=time_scaling_factor
             / _align_shapes(
-                module.p.tau_mem_inv.detach(), shape, "tau_syn"
+                module.p.tau_mem_inv.detach(), shape, "tau_mem"
             ).numpy(),  # Invert time constant
             tau_syn=time_scaling_factor
             / _align_shapes(
