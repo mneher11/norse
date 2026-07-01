@@ -84,7 +84,9 @@ def _norse_to_nir_mapping_dict(
         # why we subtract 1 from the start dimension and end dimension.
         return nir.Flatten(
             input_type=None,
-            start_dim=module.start_dim - 1 if module.start_dim > 0 else module.start_dim,
+            start_dim=(
+                module.start_dim - 1 if module.start_dim > 0 else module.start_dim
+            ),
             end_dim=module.end_dim - 1 if module.end_dim > 0 else module.end_dim,
         )
 
