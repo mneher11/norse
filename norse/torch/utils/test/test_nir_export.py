@@ -280,7 +280,7 @@ def test_bypass_module():
     assert isinstance(graph.nodes["input_tensor"], nir.Input)
     assert isinstance(graph.nodes["_0"], nir.LIF)
     assert isinstance(graph.nodes["_1"], nir.Affine)
-    assert "_2" not in graph.nodes  # 'Dropout' not present because it has been bypassed
+    assert "_2" not in graph.nodes  # 'Dropout' is not present because it has been bypassed
     assert isinstance(graph.nodes["_3"], nir.LI)
     assert isinstance(graph.nodes["_4"], nir.Affine)
     assert isinstance(graph.nodes["output"], nir.Output)
